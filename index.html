@@ -3,15 +3,18 @@
 <head>
     <title>BioCraft</title>
     <script>
-        const WEBAPP_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
+        // Replace this with your actual deployed Apps Script URL
+        const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyvfSqc8uSzVeL45pwmBEyvj_703PggCDNhXDRjKrPQQuLzqP0y8OjvFZPaLN2HCXNH1w/exec';
 
         async function fetchStudentData() {
             try {
                 const response = await fetch(WEBAPP_URL);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
                 renderStudents(data);
             } catch (error) {
                 console.error('Error fetching data:', error);
+                document.getElementById('students').innerHTML = `<p>Error loading data: ${error.message}</p>`;
             }
         }
 
@@ -23,7 +26,7 @@
                 const studentDiv = document.createElement('div');
                 studentDiv.className = 'student';
                 studentDiv.innerHTML = `
-                    <img src="${img}" class="student-img" alt="${name}">
+                    <img src="${img || '/api/placeholder/100/100'}" class="student-img" alt="${name}">
                     <h3>${name}</h3>
                     <div class="xp-bar">
                         <div class="xp-progress" style="width: ${xp}%"></div>
@@ -48,13 +51,15 @@
 
         async function updatePoints(student, type, change) {
             try {
-                await fetch(WEBAPP_URL, {
+                const response = await fetch(WEBAPP_URL, {
                     method: 'POST',
                     body: JSON.stringify({ student, type, change })
                 });
-                fetchStudentData();
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                await fetchStudentData();
             } catch (error) {
                 console.error('Error updating points:', error);
+                alert(`Failed to update points: ${error.message}`);
             }
         }
     </script>
