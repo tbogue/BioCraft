@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BioCraft</title>
+    <script>
+        const WEBAPP_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
+
+        async function fetchStudentData() {
+            try {
+                const response = await fetch(WEBAPP_URL);
+                const data = await response.json();
+                renderStudents(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function renderStudents(data) {
+            const container = document.getElementById('students');
+            container.innerHTML = '';
+            
+            data.forEach(({name, xp, crystals, dna, img}) => {
+                const studentDiv = document.createElement('div');
+                studentDiv.className = 'student';
+                studentDiv.innerHTML = `
+                    <img src="${img}" class="student-img" alt="${name}">
+                    <h3>${name}</h3>
+                    <div class="xp-bar">
+                        <div class="xp-progress" style="width: ${xp}%"></div>
+                    </div>
+                    <p>XP: ${xp}%</p>
+                    <p>Crystals: ${renderIcons(crystals, '💎', '⚪')}</p>
+                    <p>DNA: ${renderIcons(dna, '🧬', '⚪')}</p>
+                    <button onclick="updatePoints('${name}', 'crystals', 1)">+1 Crystal</button>
+                    <button onclick="updatePoints('${name}', 'crystals', -1)">-1 Crystal</button>
+                `;
+                container.appendChild(studentDiv);
+            });
+        }
+
+        function renderIcons(count, fullIcon, emptyIcon) {
+            let icons = '';
+            for (let i = 0; i < 5; i++) {
+                icons += i < count ? fullIcon : emptyIcon;
+            }
+            return icons;
+        }
+
+        async function updatePoints(student, type, change) {
+            try {
+                await fetch(WEBAPP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ student, type, change })
+                });
+                fetchStudentData();
+            } catch (error) {
+                console.error('Error updating points:', error);
+            }
+        }
+    </script>
+    <style>
+        .student { text-align: center; margin: 20px; display: inline-block; }
+        .student-img { width: 100px; height: 100px; border-radius: 50%; }
+        .xp-bar { width: 100px; height: 10px; background: lightgray; border-radius: 5px; margin: 5px auto; position: relative; }
+        .xp-progress { height: 100%; background: green; border-radius: 5px; }
+    </style>
+</head>
+<body onload="fetchStudentData()">
+    <h1>BioCraft</h1>
+    <div id="students"></div>
+</body>
+</html>
