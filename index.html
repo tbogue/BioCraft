@@ -29,30 +29,32 @@
             fetchStudentData();  // Refresh UI after update
         }
 
-        function updateUI(values) {
-            const container = document.getElementById('students');
-            container.innerHTML = '';
-            values.slice(1).forEach(row => {
-                const [name, hearts, crystals, xp] = row;
-                const studentDiv = document.createElement('div');
-                studentDiv.classList.add('student');
-                studentDiv.innerHTML = `
-                    <img src="${name}.png" alt="${name}" class="student-img">
-                    <p>${name}</p>
-                    <div class="hearts">${renderIcons(hearts, '❤️', '🤍')}</div>
-                    <div class="crystals">${renderIcons(crystals, '🔷', '⬜')}</div>
-                    <p>XP: <span id="xp-${name}">${xp}</span></p>
-                    <div class="xp-bar"><div class="xp-progress" style="width: ${(xp % 1000) / 10 || 100}%"></div></div>
-                    <button onclick="updatePoints('${name}', 'xp', 100)">+100 XP</button>
-                    <button onclick="updatePoints('${name}', 'xp', -100)">-100 XP</button>
-                    <button onclick="updatePoints('${name}', 'hearts', 1)">+1 Heart</button>
-                    <button onclick="updatePoints('${name}', 'hearts', -1)">-1 Heart</button>
-                    <button onclick="updatePoints('${name}', 'crystals', 1)">+1 Crystal</button>
-                    <button onclick="updatePoints('${name}', 'crystals', -1)">-1 Crystal</button>
-                `;
-                container.appendChild(studentDiv);
-            });
-        }
+       function updateUI(values) {
+    const container = document.getElementById('students');
+    container.innerHTML = '';
+
+    values.forEach(student => {
+        const { Name, Hearts, Crystals, XP } = student;  // Access object properties
+
+        const studentDiv = document.createElement('div');
+        studentDiv.classList.add('student');
+        studentDiv.innerHTML = `
+            <img src="${Name}.png" alt="${Name}" class="student-img">
+            <p>${Name}</p>
+            <div class="hearts">${renderIcons(Hearts, '❤️', '🤍')}</div>
+            <div class="crystals">${renderIcons(Crystals, '🔷', '⬜')}</div>
+            <p>XP: <span id="xp-${Name}">${XP}</span></p>
+            <div class="xp-bar"><div class="xp-progress" style="width: ${(XP % 1000) / 10 || 100}%"></div></div>
+            <button onclick="updatePoints('${Name}', 'XP', 100)">+100 XP</button>
+            <button onclick="updatePoints('${Name}', 'XP', -100)">-100 XP</button>
+            <button onclick="updatePoints('${Name}', 'Hearts', 1)">+1 Heart</button>
+            <button onclick="updatePoints('${Name}', 'Hearts', -1)">-1 Heart</button>
+            <button onclick="updatePoints('${Name}', 'Crystals', 1)">+1 Crystal</button>
+            <button onclick="updatePoints('${Name}', 'Crystals', -1)">-1 Crystal</button>
+        `;
+        container.appendChild(studentDiv);
+    });
+}
 
         function renderIcons(count, fullIcon, emptyIcon) {
             let icons = '';
