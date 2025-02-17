@@ -9,16 +9,28 @@
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzAyJ9RpwhQ-KBhDpCjdG758wdkUNnk1vRPa_AMkyy4OVZg6NLcsW_oQ4P6H61_wl2w2g/exec';
         const SHEET_NAME = 'Students';
 
-        async function fetchStudentData() {
-            const url = WEB_APP_URL;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                updateUI(data);
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
+      async function updatePoints(student, type, change) {
+    try {
+        const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                student: student,  // Ensure key matches the backend
+                type: type,        // Must match column name ("XP", "Hearts", "Crystals")
+                change: change     // Increment/decrement value
+            })
+        });
+
+        const result = await response.json();
+        if (result.status === "success") {
+            fetchStudentData();  // Refresh UI after update
+        } else {
+            console.error("Error updating points:", result.message);
         }
+    } catch (error) {
+        console.error("Error sending update request:", error);
+    }
+}
 
         async function updatePoints(student, type, change) {
             const response = await fetch(WEB_APP_URL, {
