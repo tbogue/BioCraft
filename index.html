@@ -4,69 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Classroom Behavior Tracker</title>
+
     <script>
-        const SHEET_ID = '1IzsOd5etK2tprEr3E2iDNeGs7-Url0Iq1d7a0AE4ud4';
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwPChCWcFSdS6vzWgXM8AlYstFocrqcVn6uLpPQJN_5KWifOWpx3_TWfwExte8w_hkmHQ/exec';
-        const SHEET_NAME = 'Students';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbymzdv4S9C_4NknNWiNurkLmcVMBpymJbJKp28jHoMHE4OiFOlYFOAvpVHyLFtCOXbYsA/exec'; // Replace with your actual Apps Script URL
 
-      async function updatePoints(student, type, change) {
-    try {
-        const response = await fetch(WEB_APP_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                student: student,  // Ensure key matches the backend
-                type: type,        // Must match column name ("XP", "Hearts", "Crystals")
-                change: change     // Increment/decrement value
-            })
-        });
-
-        const result = await response.json();
-        if (result.status === "success") {
-            fetchStudentData();  // Refresh UI after update
-        } else {
-            console.error("Error updating points:", result.message);
+        async function fetchStudentData() {
+            try {
+                const response = await fetch(WEB_APP_URL);
+                const data = await response.json();
+                updateUI(data);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
         }
-    } catch (error) {
-        console.error("Error sending update request:", error);
-    }
-}
 
         async function updatePoints(student, type, change) {
-            const response = await fetch(WEB_APP_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: student, type, change })
-            });
-            fetchStudentData();  // Refresh UI after update
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ student, type, change })
+                });
+
+                const result = await response.json();
+                if (result.status === "success") {
+                    fetchStudentData();  // Refresh UI after update
+                } else {
+                    console.error("Update failed:", result.message);
+                }
+            } catch (error) {
+                console.error("Error updating points:", error);
+            }
         }
 
-       function updateUI(values) {
-    const container = document.getElementById('students');
-    container.innerHTML = '';
+        function updateUI(values) {
+            const container = document.getElementById('students');
+            container.innerHTML = '';
 
-    values.forEach(student => {
-        const { Name, Hearts, Crystals, XP } = student;  // Access object properties
+            values.forEach(student => {
+                const { Name, Hearts, Crystals, XP } = student;
+                const studentDiv = document.createElement('div');
+                studentDiv.classList.add('student');
 
-        const studentDiv = document.createElement('div');
-        studentDiv.classList.add('student');
-        studentDiv.innerHTML = `
-            <img src="${Name}.png" alt="${Name}" class="student-img">
-            <p>${Name}</p>
-            <div class="hearts">${renderIcons(Hearts, '❤️', '🤍')}</div>
-            <div class="crystals">${renderIcons(Crystals, '🔷', '⬜')}</div>
-            <p>XP: <span id="xp-${Name}">${XP}</span></p>
-            <div class="xp-bar"><div class="xp-progress" style="width: ${(XP % 1000) / 10 || 100}%"></div></div>
-            <button onclick="updatePoints('${Name}', 'XP', 100)">+100 XP</button>
-            <button onclick="updatePoints('${Name}', 'XP', -100)">-100 XP</button>
-            <button onclick="updatePoints('${Name}', 'Hearts', 1)">+1 Heart</button>
-            <button onclick="updatePoints('${Name}', 'Hearts', -1)">-1 Heart</button>
-            <button onclick="updatePoints('${Name}', 'Crystals', 1)">+1 Crystal</button>
-            <button onclick="updatePoints('${Name}', 'Crystals', -1)">-1 Crystal</button>
-        `;
-        container.appendChild(studentDiv);
-    });
-}
+                studentDiv.innerHTML = `
+                    <img src="${Name}.png" alt="${Name}" class="student-img">
+                    <p>${Name}</p>
+                    <div class="hearts">${renderIcons(Hearts, '❤️', '🤍')}</div>
+                    <div class="crystals">${renderIcons(Crystals, '🔷', '⬜')}</div>
+                    <p>XP: <span id="xp-${Name}">${XP}</span></p>
+                    <div class="xp-bar"><div class="xp-progress" style="width: ${(XP % 1000) / 10 || 100}%"></div></div>
+                    <button onclick="updatePoints('${Name}', 'XP', 100)">+100 XP</button>
+                    <button onclick="updatePoints('${Name}', 'XP', -100)">-100 XP</button>
+                    <button onclick="updatePoints('${Name}', 'Hearts', 1)">+1 Heart</button>
+                    <button onclick="updatePoints('${Name}', 'Hearts', -1)">-1 Heart</button>
+                    <button onclick="updatePoints('${Name}', 'Crystals', 1)">+1 Crystal</button>
+                    <button onclick="updatePoints('${Name}', 'Crystals', -1)">-1 Crystal</button>
+                `;
+                container.appendChild(studentDiv);
+            });
+        }
 
         function renderIcons(count, fullIcon, emptyIcon) {
             let icons = '';
@@ -75,7 +71,11 @@
             }
             return icons;
         }
+
+        // Ensure fetchStudentData is called only after the page loads
+        document.addEventListener("DOMContentLoaded", fetchStudentData);
     </script>
+
     <style>
         .student { text-align: center; margin: 20px; display: inline-block; }
         .student-img { width: 100px; height: 100px; border-radius: 50%; }
@@ -83,7 +83,7 @@
         .xp-progress { height: 100%; background: green; border-radius: 5px; }
     </style>
 </head>
-<body onload="fetchStudentData()">
+<body>
     <h1>Classroom Behavior Tracker</h1>
     <div id="students"></div>
 </body>
