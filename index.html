@@ -1,39 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>BioCraft</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Behavior Tracker</title>
     <script>
-        // Replace this with your actual deployed Apps Script URL
-        const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyTbYTTaTlm2Oyr_8lROGvhvA3sTNjAUROgDMiHBJlHoVUwmzMQ8kB7mEYvhty-b0FBGw/exec';
+        const SHEET_ID = '1IzsOd5etK2tprEr3E2iDNeGs7-Url0Iq1d7a0AE4ud4';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzKFNmzR_dGdhuu1vcva-al1KS22BAhplIqQZ72bAOSLYWELNxF94NeGRverA7uFTvHdg/exec';
+        const SHEET_NAME = 'Students';
 
         async function fetchStudentData() {
+            const url = WEB_APP_URL;
             try {
-                const response = await fetch(WEBAPP_URL);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const response = await fetch(url);
                 const data = await response.json();
-                renderStudents(data);
+                updateUI(data);
             } catch (error) {
-                console.error('Error fetching data:', error);
-                document.getElementById('students').innerHTML = `<p>Error loading data: ${error.message}</p>`;
+                console.error("Error fetching data:", error);
             }
         }
 
-        function renderStudents(data) {
+        async function updatePoints(student, type, change) {
+            const response = await fetch(WEB_APP_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: student, type, change })
+            });
+            fetchStudentData();  // Refresh UI after update
+        }
+
+        function updateUI(values) {
             const container = document.getElementById('students');
             container.innerHTML = '';
-            
-            data.forEach(({name, xp, crystals, dna, img}) => {
+            values.slice(1).forEach(row => {
+                const [name, hearts, crystals, xp] = row;
                 const studentDiv = document.createElement('div');
-                studentDiv.className = 'student';
+                studentDiv.classList.add('student');
                 studentDiv.innerHTML = `
-                    <img src="${img || '/api/placeholder/100/100'}" class="student-img" alt="${name}">
-                    <h3>${name}</h3>
-                    <div class="xp-bar">
-                        <div class="xp-progress" style="width: ${xp}%"></div>
-                    </div>
-                    <p>XP: ${xp}%</p>
-                    <p>Crystals: ${renderIcons(crystals, '💎', '⚪')}</p>
-                    <p>DNA: ${renderIcons(dna, '🧬', '⚪')}</p>
+                    <img src="${name}.png" alt="${name}" class="student-img">
+                    <p>${name}</p>
+                    <div class="hearts">${renderIcons(hearts, '❤️', '🤍')}</div>
+                    <div class="crystals">${renderIcons(crystals, '🔷', '⬜')}</div>
+                    <p>XP: <span id="xp-${name}">${xp}</span></p>
+                    <div class="xp-bar"><div class="xp-progress" style="width: ${(xp % 1000) / 10 || 100}%"></div></div>
+                    <button onclick="updatePoints('${name}', 'xp', 100)">+100 XP</button>
+                    <button onclick="updatePoints('${name}', 'xp', -100)">-100 XP</button>
+                    <button onclick="updatePoints('${name}', 'hearts', 1)">+1 Heart</button>
+                    <button onclick="updatePoints('${name}', 'hearts', -1)">-1 Heart</button>
                     <button onclick="updatePoints('${name}', 'crystals', 1)">+1 Crystal</button>
                     <button onclick="updatePoints('${name}', 'crystals', -1)">-1 Crystal</button>
                 `;
@@ -48,20 +61,6 @@
             }
             return icons;
         }
-
-        async function updatePoints(student, type, change) {
-            try {
-                const response = await fetch(WEBAPP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ student, type, change })
-                });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                await fetchStudentData();
-            } catch (error) {
-                console.error('Error updating points:', error);
-                alert(`Failed to update points: ${error.message}`);
-            }
-        }
     </script>
     <style>
         .student { text-align: center; margin: 20px; display: inline-block; }
@@ -71,7 +70,7 @@
     </style>
 </head>
 <body onload="fetchStudentData()">
-    <h1>BioCraft</h1>
+    <h1>Classroom Behavior Tracker</h1>
     <div id="students"></div>
 </body>
 </html>
